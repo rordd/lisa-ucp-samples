@@ -20,12 +20,14 @@ and costs based on the provided shipping address.
 
 import db
 from sqlalchemy.ext.asyncio import AsyncSession
-from ucp_sdk.models.schemas.shopping.fulfillment_resp import FulfillmentOption
-from ucp_sdk.models.schemas.shopping.types.fulfillment_option_resp import (
-  FulfillmentOptionResponse,
+from ucp_sdk.models.schemas.shopping.fulfillment import (
+  Checkout as FulfillmentOption,
+)
+from ucp_sdk.models.schemas.shopping.types.fulfillment_option import (
+  FulfillmentOption as FulfillmentOptionResponse,
 )
 from ucp_sdk.models.schemas.shopping.types.postal_address import PostalAddress
-from ucp_sdk.models.schemas.shopping.types.total_resp import TotalResponse
+from ucp_sdk.models.schemas.shopping.types.total import Total as TotalResponse
 
 
 class FulfillmentService:

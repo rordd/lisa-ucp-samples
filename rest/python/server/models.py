@@ -19,38 +19,36 @@ These models extend the base UCP SDK models by combining multiple extensions
 objects used by the sample server implementation.
 """
 
-from ucp_sdk.models.schemas.shopping.ap2_mandate import (
-  CheckoutResponseWithAp2 as Ap2Checkout,
-)
-from ucp_sdk.models.schemas.shopping.buyer_consent_create_req import (
-  Checkout as BuyerConsentCheckoutCreate,
-)
-from ucp_sdk.models.schemas.shopping.buyer_consent_resp import (
+from ucp_sdk.models.schemas.shopping.ap2_mandate import Checkout as Ap2Checkout
+from ucp_sdk.models.schemas.shopping.buyer_consent import (
   Checkout as BuyerConsentCheckoutResp,
 )
-from ucp_sdk.models.schemas.shopping.buyer_consent_update_req import (
+from ucp_sdk.models.schemas.shopping.buyer_consent import (
+  Checkout as BuyerConsentCheckoutCreate,
+)
+from ucp_sdk.models.schemas.shopping.buyer_consent import (
   Checkout as BuyerConsentCheckoutUpdate,
 )
-from ucp_sdk.models.schemas.shopping.discount_create_req import (
-  Checkout as DiscountCheckoutCreate,
-)
-from ucp_sdk.models.schemas.shopping.discount_resp import (
+from ucp_sdk.models.schemas.shopping.discount import (
   Checkout as DiscountCheckoutResp,
 )
-from ucp_sdk.models.schemas.shopping.discount_update_req import (
+from ucp_sdk.models.schemas.shopping.discount import (
+  Checkout as DiscountCheckoutCreate,
+)
+from ucp_sdk.models.schemas.shopping.discount import (
   Checkout as DiscountCheckoutUpdate,
 )
-from ucp_sdk.models.schemas.shopping.fulfillment_create_req import (
-  Checkout as FulfillmentCreateRequest,
-)
-from ucp_sdk.models.schemas.shopping.fulfillment_resp import (
+from ucp_sdk.models.schemas.shopping.fulfillment import (
   Checkout as FulfillmentCheckout,
 )
-from ucp_sdk.models.schemas.shopping.fulfillment_update_req import (
+from ucp_sdk.models.schemas.shopping.fulfillment import (
+  Checkout as FulfillmentCreateRequest,
+)
+from ucp_sdk.models.schemas.shopping.fulfillment import (
   Checkout as FulfillmentUpdateRequest,
 )
 from ucp_sdk.models.schemas.shopping.order import Order
-from ucp_sdk.models.schemas.shopping.order import PlatformConfig
+from ucp_sdk.models.schemas.shopping.order import PlatformSchema
 
 
 class UnifiedOrder(Order):
@@ -65,7 +63,7 @@ class UnifiedCheckout(
 ):
   """Checkout model supporting various extensions."""
 
-  platform: PlatformConfig | None = None
+  platform: PlatformSchema | None = None
 
 
 class UnifiedCheckoutCreateRequest(

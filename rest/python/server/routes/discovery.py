@@ -19,7 +19,7 @@ import pathlib
 import uuid
 from fastapi import APIRouter
 from fastapi import Request
-from ucp_sdk.models.discovery.profile_schema import UcpDiscoveryProfile
+from ucp_sdk.models.schemas.ucp import BusinessSchema
 
 router = APIRouter()
 
@@ -31,7 +31,7 @@ SHOP_ID = str(uuid.uuid4())
 
 @router.get(
   "/.well-known/ucp",
-  response_model=UcpDiscoveryProfile,
+  response_model=BusinessSchema,
   summary="Get Merchant Profile",
 )
 async def get_merchant_profile(request: Request):
@@ -45,4 +45,4 @@ async def get_merchant_profile(request: Request):
     "{{ENDPOINT}}", str(request.base_url).rstrip("/")
   ).replace("{{SHOP_ID}}", SHOP_ID)
 
-  return UcpDiscoveryProfile(**json.loads(profile_json))
+  return BusinessSchema(**json.loads(profile_json))

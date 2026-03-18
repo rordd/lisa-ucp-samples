@@ -54,62 +54,62 @@ from pydantic import AnyUrl
 from pydantic import BaseModel
 from services.fulfillment_service import FulfillmentService
 from sqlalchemy.ext.asyncio import AsyncSession
-from ucp_sdk.models._internal import Response
-from ucp_sdk.models._internal import ResponseCheckout
-from ucp_sdk.models._internal import ResponseOrder
-from ucp_sdk.models._internal import Version
-from ucp_sdk.models.schemas.shopping.ap2_mandate import Ap2CompleteRequest
-from ucp_sdk.models.schemas.shopping.discount_resp import Allocation
-from ucp_sdk.models.schemas.shopping.discount_resp import AppliedDiscount
-from ucp_sdk.models.schemas.shopping.discount_resp import DiscountsObject
-from ucp_sdk.models.schemas.shopping.fulfillment_resp import (
-  Fulfillment as FulfillmentResp,
+from ucp_sdk.models.schemas.ucp import ResponseCheckoutSchema as ResponseCheckout
+from ucp_sdk.models.schemas.ucp import ResponseOrderSchema as ResponseOrder
+from ucp_sdk.models.schemas.ucp import Version
+from ucp_sdk.models.schemas.capability import ResponseSchema as Response
+from ucp_sdk.models.schemas.shopping.ap2_mandate import Checkout as Ap2CompleteRequest
+from ucp_sdk.models.schemas.shopping.discount import Allocation
+from ucp_sdk.models.schemas.shopping.discount import AppliedDiscount
+from ucp_sdk.models.schemas.shopping.discount import DiscountsObject
+from ucp_sdk.models.schemas.shopping.fulfillment import (
+  Checkout as FulfillmentResp,
 )
 from ucp_sdk.models.schemas.shopping.order import (
   Fulfillment as OrderFulfillment,
 )
 from ucp_sdk.models.schemas.shopping.order import Order
-from ucp_sdk.models.schemas.shopping.order import PlatformConfig
-from ucp_sdk.models.schemas.shopping.payment_create_req import (
+from ucp_sdk.models.schemas.shopping.order import PlatformSchema
+from ucp_sdk.models.schemas.shopping.payment_create_request import (
   PaymentCreateRequest,
 )
-from ucp_sdk.models.schemas.shopping.payment_resp import PaymentResponse
+from ucp_sdk.models.schemas.shopping.payment import Payment as PaymentResponse
 from ucp_sdk.models.schemas.shopping.types import order_line_item
-from ucp_sdk.models.schemas.shopping.types import total_resp
+from ucp_sdk.models.schemas.shopping.types import total as total_resp
 from ucp_sdk.models.schemas.shopping.types.card_credential import CardCredential
 from ucp_sdk.models.schemas.shopping.types.expectation import Expectation
 from ucp_sdk.models.schemas.shopping.types.expectation import (
   LineItem as ExpectationLineItem,
 )
-from ucp_sdk.models.schemas.shopping.types.fulfillment_destination_resp import (
-  FulfillmentDestinationResponse,
+from ucp_sdk.models.schemas.shopping.types.fulfillment_destination import (
+  FulfillmentDestination,
 )
-from ucp_sdk.models.schemas.shopping.types.fulfillment_group_resp import (
-  FulfillmentGroupResponse,
+from ucp_sdk.models.schemas.shopping.types.fulfillment_group import (
+  FulfillmentGroup,
 )
-from ucp_sdk.models.schemas.shopping.types.fulfillment_method_resp import (
-  FulfillmentMethodResponse,
+from ucp_sdk.models.schemas.shopping.types.fulfillment_method import (
+  FulfillmentMethod,
 )
-from ucp_sdk.models.schemas.shopping.types.fulfillment_resp import (
-  FulfillmentResponse,
+from ucp_sdk.models.schemas.shopping.types.fulfillment import (
+  Fulfillment as FulfillmentResponseClass,
 )
-from ucp_sdk.models.schemas.shopping.types.item_resp import ItemResponse
-from ucp_sdk.models.schemas.shopping.types.line_item_resp import (
-  LineItemResponse,
+from ucp_sdk.models.schemas.shopping.types.item import Item as ItemResponse
+from ucp_sdk.models.schemas.shopping.types.line_item import (
+  LineItem as LineItemResponse,
 )
 from ucp_sdk.models.schemas.shopping.types.order_confirmation import (
   OrderConfirmation,
 )
 from ucp_sdk.models.schemas.shopping.types.order_line_item import OrderLineItem
 from ucp_sdk.models.schemas.shopping.types.postal_address import PostalAddress
-from ucp_sdk.models.schemas.shopping.types.shipping_destination_resp import (
-  ShippingDestinationResponse,
+from ucp_sdk.models.schemas.shopping.types.shipping_destination import (
+  ShippingDestination as ShippingDestinationResponse,
 )
-from ucp_sdk.models.schemas.shopping.types.token_credential_resp import (
-  TokenCredentialResponse,
+from ucp_sdk.models.schemas.shopping.types.token_credential import (
+  TokenCredential as TokenCredentialResponse,
 )
-from ucp_sdk.models.schemas.shopping.types.total_resp import (
-  TotalResponse as Total,
+from ucp_sdk.models.schemas.shopping.types.total import (
+  Total as TotalResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -147,7 +147,7 @@ class CheckoutService:
     self,
     checkout_req: UnifiedCheckoutCreateRequest,
     idempotency_key: str,
-    platform_config: PlatformConfig | None = None,
+    platform_config: PlatformSchema | None = None,
   ) -> Checkout:
     """Create a new checkout session."""
     logger.info("Creating checkout session")
@@ -244,7 +244,7 @@ class CheckoutService:
               )
 
               resp_groups.append(
-                FulfillmentGroupResponse(
+                FulfillmentGroup(
                   id=group_id,
                   line_item_ids=group_li_ids,
                   selected_option_id=getattr(
@@ -272,7 +272,7 @@ class CheckoutService:
               inner_dest = dest_req.root
 
               resp_destinations.append(
-                FulfillmentDestinationResponse(
+                FulfillmentDestination(
                   root=ShippingDestinationResponse(
                     id=getattr(inner_dest, "id", None) or str(uuid.uuid4()),
                     address_country=inner_dest.address_country,
@@ -285,7 +285,7 @@ class CheckoutService:
               )
 
           resp_methods.append(
-            FulfillmentMethodResponse(
+            FulfillmentMethod(
               id=method_id,
               type=method_type,
               line_item_ids=method_li_ids,
@@ -298,7 +298,7 @@ class CheckoutService:
           )
 
       fulfillment_resp = FulfillmentResp(
-        root=FulfillmentResponse(methods=resp_methods)
+        root=FulfillmentResponseClass(methods=resp_methods)
       )
 
     checkout = Checkout(
@@ -377,7 +377,7 @@ class CheckoutService:
     checkout_id: str,
     checkout_req: UnifiedCheckoutUpdateRequest,
     idempotency_key: str,
-    platform_config: PlatformConfig | None = None,
+    platform_config: PlatformSchema | None = None,
   ) -> Checkout:
     """Update a checkout session."""
     logger.info("Updating checkout session %s", checkout_id)
@@ -516,7 +516,7 @@ class CheckoutService:
                   dest_data["id"] = saved_id
 
                 resp_destinations.append(
-                  FulfillmentDestinationResponse(
+                  FulfillmentDestination(
                     root=ShippingDestinationResponse(**dest_data)
                   )
                 )
@@ -527,7 +527,7 @@ class CheckoutService:
             elif customer_addresses:
               for addr in customer_addresses:
                 resp_destinations.append(
-                  FulfillmentDestinationResponse(
+                  FulfillmentDestination(
                     root=ShippingDestinationResponse(
                       id=addr.id,
                       street_address=addr.street_address,
@@ -548,7 +548,7 @@ class CheckoutService:
                 li.id for li in existing.line_items
               ]
               resp_groups.append(
-                FulfillmentGroupResponse(
+                FulfillmentGroup(
                   id=g_id,
                   line_item_ids=g_li_ids,
                   selected_option_id=getattr(g_req, "selected_option_id", None),
@@ -559,7 +559,7 @@ class CheckoutService:
             resp_groups = existing_method.groups
 
           # Construct the method response
-          method_resp = FulfillmentMethodResponse(
+          method_resp = FulfillmentMethod(
             id=method_id,
             type=method_type,
             line_item_ids=method_li_ids,
@@ -572,7 +572,7 @@ class CheckoutService:
           resp_methods.append(method_resp)
 
       existing.fulfillment = FulfillmentResp(
-        root=FulfillmentResponse(
+        root=FulfillmentResponseClass(
           methods=resp_methods,
         )
       )
@@ -773,7 +773,7 @@ class CheckoutService:
         permalink_url=checkout.order.permalink_url,
         line_items=order_line_items,
         totals=[
-          total_resp.TotalResponse(**t.model_dump()) for t in checkout.totals
+          total_resp.Total(**t.model_dump()) for t in checkout.totals
         ],
         fulfillment=OrderFulfillment(expectations=expectations, events=[]),
       )

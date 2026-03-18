@@ -33,10 +33,10 @@ from models import UnifiedCheckoutCreateRequest
 from pydantic import BaseModel
 from pydantic import HttpUrl
 from services.checkout_service import CheckoutService
-from ucp_sdk.models.schemas.shopping.ap2_mandate import Ap2CompleteRequest
+from ucp_sdk.models.schemas.shopping.ap2_mandate import Checkout as Ap2CompleteRequest
 from ucp_sdk.models.schemas.shopping.order import Order
-from ucp_sdk.models.schemas.shopping.order import PlatformConfig
-from ucp_sdk.models.schemas.shopping.payment_create_req import (
+from ucp_sdk.models.schemas.shopping.order import PlatformSchema
+from ucp_sdk.models.schemas.shopping.payment_create_request import (
   PaymentCreateRequest,
 )
 from ucp_sdk.models.schemas.shopping.types.payment_instrument import (
@@ -57,7 +57,7 @@ class UcpConfig(BaseModel):
 class Capability(BaseModel):
   """UCP capability definition."""
 
-  config: UcpConfig | None = None
+  platform: PlatformSchema | None = None
 
 
 class UcpProfile(BaseModel):
@@ -129,14 +129,14 @@ async def create_checkout(
   """Create Checkout Implementation."""
   # Convert generated model to Unified model which the service expects
   # Note: `platform` is no longer in UnifiedCheckoutCreateRequest
-  # We construct PlatformConfig separately if headers are present
+  # We construct PlatformSchema separately if headers are present
   req_dict = checkout_req.model_dump(exclude_unset=True, by_alias=True)
   unified_req = models.UnifiedCheckoutCreateRequest(**req_dict)
 
   platform_config = None
   webhook_url = await extract_webhook_url(common_headers.ucp_agent)
   if webhook_url:
-    platform_config = PlatformConfig(webhook_url=webhook_url)
+    platform_config = PlatformSchema(webhook_url=webhook_url)
 
   result = await checkout_service.create_checkout(
     unified_req, idempotency_key, platform_config
@@ -177,7 +177,7 @@ async def update_checkout(
   platform_config = None
   webhook_url = await extract_webhook_url(common_headers.ucp_agent)
   if webhook_url:
-    platform_config = PlatformConfig(webhook_url=webhook_url)
+    platform_config = PlatformSchema(webhook_url=webhook_url)
 
   result = await checkout_service.update_checkout(
     checkout_id, unified_req, idempotency_key, platform_config

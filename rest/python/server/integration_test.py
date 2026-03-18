@@ -31,34 +31,34 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import delete
-from ucp_sdk.models.schemas.shopping import checkout_create_req
-from ucp_sdk.models.schemas.shopping import payment_create_req
-from ucp_sdk.models.schemas.shopping.ap2_mandate import (
-  CheckoutResponseWithAp2 as Ap2Checkout,
-)
-from ucp_sdk.models.schemas.shopping.buyer_consent_resp import (
+from ucp_sdk.models.schemas.shopping import checkout_create_request as checkout_create_req
+from ucp_sdk.models.schemas.shopping import payment_create_request as payment_create_req
+from ucp_sdk.models.schemas.shopping.ap2_mandate import Checkout as Ap2Checkout
+from ucp_sdk.models.schemas.shopping.buyer_consent import (
   Checkout as BuyerConsentCheckoutResp,
 )
-from ucp_sdk.models.schemas.shopping.discount_resp import (
+from ucp_sdk.models.schemas.shopping.discount import (
   Checkout as DiscountCheckoutResp,
 )
-from ucp_sdk.models.schemas.shopping.fulfillment_create_req import Fulfillment
-from ucp_sdk.models.schemas.shopping.fulfillment_resp import (
+from ucp_sdk.models.schemas.shopping.fulfillment import (
+  Checkout as Fulfillment,
+)
+from ucp_sdk.models.schemas.shopping.fulfillment import (
   Checkout as FulfillmentCheckout,
 )
-from ucp_sdk.models.schemas.shopping.order import PlatformConfig
-from ucp_sdk.models.schemas.shopping.payment_data import PaymentData
+from ucp_sdk.models.schemas.shopping.order import PlatformSchema
+from ucp_sdk.models.schemas.shopping.payment import Payment as PaymentData
 from ucp_sdk.models.schemas.shopping.types import card_payment_instrument
-from ucp_sdk.models.schemas.shopping.types import fulfillment_destination_req
-from ucp_sdk.models.schemas.shopping.types import fulfillment_group_create_req
-from ucp_sdk.models.schemas.shopping.types import fulfillment_method_create_req
-from ucp_sdk.models.schemas.shopping.types import fulfillment_req
-from ucp_sdk.models.schemas.shopping.types import item_create_req
-from ucp_sdk.models.schemas.shopping.types import line_item_create_req
-from ucp_sdk.models.schemas.shopping.types import payment_handler_create_req
+from ucp_sdk.models.schemas.shopping.types import fulfillment_destination as fulfillment_destination_req
+from ucp_sdk.models.schemas.shopping.types import fulfillment_group_create_request as fulfillment_group_create_req
+from ucp_sdk.models.schemas.shopping.types import fulfillment_method_create_request as fulfillment_method_create_req
+from ucp_sdk.models.schemas.shopping.types import fulfillment as fulfillment_req
+from ucp_sdk.models.schemas.shopping.types import item_create_request as item_create_req
+from ucp_sdk.models.schemas.shopping.types import line_item_create_request as line_item_create_req
+from ucp_sdk.models.schemas.shopping.types import payment_handler as payment_handler_create_req
 from ucp_sdk.models.schemas.shopping.types import payment_instrument
-from ucp_sdk.models.schemas.shopping.types import shipping_destination_req
-from ucp_sdk.models.schemas.shopping.types import token_credential_resp
+from ucp_sdk.models.schemas.shopping.types import shipping_destination as shipping_destination_req
+from ucp_sdk.models.schemas.shopping.types import token_credential as token_credential_resp
 
 FLAGS = flags.FLAGS
 
@@ -71,7 +71,7 @@ class TestCheckout(
 ):
   """Checkout model supporting Fulfillment, Discount, and AP2 extensions."""
 
-  platform: PlatformConfig | None = None
+  platform: PlatformSchema | None = None
 
 
 class IntegrationTest(absltest.TestCase):
@@ -238,8 +238,8 @@ class IntegrationTest(absltest.TestCase):
     )
 
     # Hierarchical Fulfillment Construction
-    destination = fulfillment_destination_req.FulfillmentDestinationRequest(
-      root=shipping_destination_req.ShippingDestinationRequest(
+    destination = fulfillment_destination_req.FulfillmentDestination(
+      root=shipping_destination_req.ShippingDestination(
         id="dest_1", address_country="US"
       )
     )
@@ -253,7 +253,7 @@ class IntegrationTest(absltest.TestCase):
       groups=[group],
     )
     fulfillment = Fulfillment(
-      root=fulfillment_req.FulfillmentRequest(methods=[method])
+      root=fulfillment_req.Fulfillment(methods=[method])
     )
 
     return checkout_create_req.CheckoutCreateRequest(
@@ -266,7 +266,7 @@ class IntegrationTest(absltest.TestCase):
 
   def _create_payment_payload(self) -> PaymentData:
     """Create a payment payload using SDK models."""
-    credential = token_credential_resp.TokenCredentialResponse(
+    credential = token_credential_resp.TokenCredential(
       type="token", token="success_token"
     )
     instrument = card_payment_instrument.CardPaymentInstrument(
@@ -278,10 +278,10 @@ class IntegrationTest(absltest.TestCase):
       last_digits="1234",
       credential=credential,
     )
-    return PaymentData(
-      payment_data=payment_instrument.PaymentInstrument(root=instrument),
-      risk_signals={},
-    )
+    return {
+      "payment_data": payment_instrument.PaymentInstrument(root=instrument),
+      "risk_signals": {},
+    }
 
   def test_single_item_checkout(self) -> None:
     """Test the full lifecycle of a single item checkout."""
