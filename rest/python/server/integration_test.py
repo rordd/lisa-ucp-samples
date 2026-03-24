@@ -55,7 +55,6 @@ from ucp_sdk.models.schemas.shopping.types import fulfillment_method_create_requ
 from ucp_sdk.models.schemas.shopping.types import fulfillment as fulfillment_req
 from ucp_sdk.models.schemas.shopping.types import item_create_request as item_create_req
 from ucp_sdk.models.schemas.shopping.types import line_item_create_request as line_item_create_req
-from ucp_sdk.models.schemas.shopping.types import payment_handler as payment_handler_create_req
 from ucp_sdk.models.schemas.shopping.types import payment_instrument
 from ucp_sdk.models.schemas.shopping.types import shipping_destination as shipping_destination_req
 from ucp_sdk.models.schemas.shopping.types import token_credential as token_credential_resp
@@ -223,30 +222,17 @@ class IntegrationTest(absltest.TestCase):
       )
       line_items.append(line_item)
 
-    handler = payment_handler_create_req.PaymentHandlerCreateRequest(
-      id="google_pay",
-      name="google.pay",
-      version="2026-01-11",
-      spec="https://example.com/spec",
-      config_schema="https://example.com/schema",
-      instrument_schemas=["https://example.com/schema"],
-      config={},
-    )
-
-    payment = payment_create_req.PaymentCreateRequest(
-      handlers=[handler], instruments=[]
-    )
+    payment = payment_create_req.PaymentCreateRequest(instruments=[])
 
     # Hierarchical Fulfillment Construction
-    destination = fulfillment_destination_req.FulfillmentDestination(
-      root=shipping_destination_req.ShippingDestination(
-        id="dest_1", address_country="US"
-      )
+    destination = shipping_destination_req.ShippingDestination(
+      id="dest_1", address_country="US"
     )
     group = fulfillment_group_create_req.FulfillmentGroupCreateRequest(
       selected_option_id="std-ship"
     )
     method = fulfillment_method_create_req.FulfillmentMethodCreateRequest(
+      line_item_ids=[i_id for i_id, _, _, _ in items],
       type="shipping",
       destinations=[destination],
       selected_destination_id="dest_1",
