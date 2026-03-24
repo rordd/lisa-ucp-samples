@@ -31,7 +31,7 @@ SHOP_ID = str(uuid.uuid4())
 
 @router.get(
   "/.well-known/ucp",
-  response_model=BusinessSchema,
+  response_model=dict,
   summary="Get Merchant Profile",
 )
 async def get_merchant_profile(request: Request):
@@ -52,4 +52,4 @@ async def get_merchant_profile(request: Request):
   if "payment_handlers" not in profile_data:
     profile_data["payment_handlers"] = []
 
-  return BusinessSchema(**profile_data)
+  return profile_data

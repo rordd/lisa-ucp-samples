@@ -40,7 +40,7 @@ class FulfillmentService:
     promotions: list[db.Promotion] | None = None,
     subtotal: int = 0,
     line_item_ids: list[str] | None = None,
-  ) -> list[FulfillmentOption]:
+  ) -> list[FulfillmentOptionResponse]:
     """Calculate available fulfillment options based on the address.
 
     Args:
@@ -111,15 +111,13 @@ class FulfillmentService:
         title += " (Free)"
 
       options.append(
-        FulfillmentOption(
-          root=FulfillmentOptionResponse(
-            id=rate.id,
-            title=title,
-            totals=[
-              TotalResponse(type="subtotal", amount=price),
-              TotalResponse(type="total", amount=price),
-            ],
-          )
+        FulfillmentOptionResponse(
+          id=rate.id,
+          title=title,
+          totals=[
+            TotalResponse(type="subtotal", amount=price),
+            TotalResponse(type="total", amount=price),
+          ],
         )
       )
 

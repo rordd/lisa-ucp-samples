@@ -58,12 +58,13 @@ class Capability(BaseModel):
   """UCP capability definition."""
 
   platform: PlatformSchema | None = None
+  config: UcpConfig | None = None
 
 
 class UcpProfile(BaseModel):
   """UCP discovery profile."""
 
-  capabilities: list[Capability] = []
+  capabilities: dict[str, Any] | list[Any] | Any = None
 
 
 class AgentProfile(BaseModel):
@@ -92,17 +93,28 @@ async def extract_webhook_url(ucp_agent: str) -> str | None:
         return None
 
       try:
-        profile = AgentProfile.model_validate(response.json())
-      except (ValueError, TypeError) as e:
-        logger.error(
-          "Failed to validate Agent Profile from %s: %s", profile_uri, e
-        )
+        profile_dict = response.json()
+      except Exception as e:
+        logger.error("Failed to parse JSON from %s: %s", profile_uri, e)
         return None
 
-      if profile.ucp and profile.ucp.capabilities:
-        for cap in profile.ucp.capabilities:
-          if cap.config and cap.config.webhook_url:
-            return str(cap.config.webhook_url)
+      if "ucp" in profile_dict:
+        capabilities = profile_dict["ucp"].get("capabilities", {})
+        if isinstance(capabilities, dict):
+          cap_list = [c_obj for c_list in capabilities.values() for c_obj in c_list]
+        elif isinstance(capabilities, list):
+          cap_list = capabilities
+        else:
+          cap_list = []
+
+        for cap in cap_list:
+          if isinstance(cap, dict):
+            config = cap.get("config", {})
+            if isinstance(config, dict) and config.get("webhook_url"):
+                return str(config["webhook_url"])
+          else:
+            if hasattr(cap, "config") and cap.config and hasattr(cap.config, "webhook_url") and cap.config.webhook_url:
+                return str(cap.config.webhook_url)
 
       logger.warning("No webhook_url found in profile from %s", profile_uri)
   except httpx.RequestError as e:
@@ -202,10 +214,8 @@ async def complete_checkout(
   del common_headers  # Unused
 
   # Map payment_data (single instrument) to PaymentCreateRequest
-  instrument = PaymentInstrument(root=payment_data)
   payment_req = PaymentCreateRequest(
-    selected_instrument_id=payment_data.get("id"),
-    instruments=[instrument],
+    instruments=[payment_data],
   )
 
   checkout_result = await checkout_service.complete_checkout(
