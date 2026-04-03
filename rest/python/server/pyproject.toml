@@ -38,7 +38,7 @@ packages = ["."]
 
 [tool.uv.sources]
 # The relative path is stored here
-ucp-sdk = { path = "../../../../python-sdk/", editable = true }
+ucp-sdk = { path = "/home/changwook.im/project/lisa9/lisa-ucp-sdk" }
 
 [tool.ruff]
 line-length = 80
